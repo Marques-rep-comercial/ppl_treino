@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Treino PPL Interativo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712; /* bg-gray-950 */
+        }
+        /* Estilo para o botão de aba ativo */
+        .tab-button.active {
+            background-color: #3b82f6; /* bg-blue-600 */
+            color: white;
+        }
+        /* Transições suaves para uma melhor experiência do usuário */
+        .workout-section {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .workout-section.hidden {
+            opacity: 0;
+            transform: scale(0.98);
+            position: absolute;
+            width: 100%;
+            visibility: hidden;
+        }
+        /* Estilos para os cards de exercício */
+        .exercise-card {
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #1f2937; /* border-gray-800 */
+            border-left-width: 4px;
+            border-left-color: #374151; /* gray-700 */
+        }
+         .exercise-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-color: #3b82f6;
+        }
+        .exercise-card.completed {
+            background-color: #111827; /* bg-gray-900 */
+            opacity: 0.6;
+            border-left-color: #22c55e; /* green-500 */
+        }
+        .exercise-card.completed h4 {
+            text-decoration: line-through;
+            color: #6b7280; /* gray-500 */
+        }
+        /* Checkbox customizado */
+        .series-checkbox {
+            appearance: none;
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+        .series-checkbox:checked {
+            background-color: #22c55e;
+            border-color: #22c55e;
+        }
+        .series-checkbox:checked::after {
+            content: '✔';
+            position: absolute;
+            color: white;
+            font-size: 0.8rem;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        /* Estilos do Calendário Responsivo */
+        .calendar-day {
+            min-height: 60px; /* Altura para mobile */
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+            .calendar-day {
+                min-height: 80px; /* Altura para telas maiores */
+            }
+        }
+        .today {
+            background-color: #3b82f6 !important;
+            color: white;
+        }
+        .workout-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .workout-dot-push { background-color: #3b82f6; } /* blue */
+        .workout-dot-pull { background-color: #22c55e; } /* green */
+        .workout-dot-legs { background-color: #ef4444; } /* red */
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        <!-- Cabeçalho -->
+        <header class="text-center mb-10">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">Plano de Treino PPL</h1>
+            <p class="text-gray-400 mt-2 text-base sm:text-lg">Sua estrutura de treino interativa: Push, Pull & Legs</p>
+        </header>
+
+        <!-- Navegação das Abas -->
+        <div class="flex flex-wrap justify-center bg-gray-900/50 backdrop-blur-sm p-2 rounded-lg mb-8 space-x-1 sm:space-x-2">
+            <button id="push-btn" class="tab-button active py-2 px-3 sm:px-5 text-sm sm:text-base font-semibold rounded-md transition-all duration-200">Push</button>
+            <button id="pull-btn" class="tab-button py-2 px-3 sm:px-5 text-sm sm:text-base font-semibold rounded-md transition-all duration-200">Pull</button>
+            <button id="legs-btn" class="tab-button py-2 px-3 sm:px-5 text-sm sm:text-base font-semibold rounded-md transition-all duration-200">Legs</button>
+            <button id="calendar-btn" class="tab-button py-2 px-3 sm:px-5 text-sm sm:text-base font-semibold rounded-md transition-all duration-200">Calendário</button>
+        </div>
+
+        <!-- Conteúdo dos Treinos -->
+        <main class="relative">
+            <!-- DIA DE PUSH -->
+            <div id="push-day" class="workout-section space-y-8">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-blue-400 border-l-4 border-blue-400 pl-4">PUSH</h2>
+                    <span class="text-gray-400 font-semibold text-xs sm:text-base">(Peito | Ombro | Tríceps)</span>
+                </div>
+                <div class="progress-container bg-gray-800 rounded-full h-3 w-full">
+                    <div id="push-progress" class="progress-bar bg-blue-500 h-3 rounded-full transition-all duration-300 ease-in-out" style="width: 0%"></div>
+                </div>
+                
+                <!-- Peito -->
+                <div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-300">Peito</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- 
+                            EXEMPLO DE USO COM IMAGEM LOCAL:
+                            Supondo que você tem uma pasta chamada "gifs" ao lado do seu arquivo index.html,
+                            e dentro dela um arquivo chamado "supino-inclinado.gif".
+                            O caminho ficaria como abaixo.
+                        -->
+                        <!-- IMAGEM PARA: Supino inclinado halter/barra -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="push-1" data-exercise-name="Supino inclinado halter/barra" data-image-url="push/supino_inclinado_halter_barra.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Supino inclinado halter/barra</h4>
+                                    <p class="text-gray-400 text-sm">3x (15 – 12 – 10 reps / progressão de carga)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Peck deck -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="push-2" data-exercise-name="Peck Deck" data-image-url="push/peck_deck.gif">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Peck deck</h4>
+                                    <p class="text-gray-400 text-sm">3x (15 – 12 – 10)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Supino reto (máquina ou halter) -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="push-3" data-exercise-name="Supino reto (máquina ou halter)" data-image-url="push/supino_reto.gif">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Supino reto (máquina ou halter)</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 – 10 – 8, mais pesado)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Crossover declinado polia -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="push-4" data-exercise-name="Crossover declinado polia" data-image-url="push/crossover_declinado_polia.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Crossover declinado polia</h4>
+                                    <p class="text-gray-400 text-sm">3x (15 – 12 – 10, foco na contração)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ombro -->
+                <div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-300">Ombro</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- IMAGEM PARA: Desenvolvimento halter -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="push-5" data-exercise-name="Desenvolvimento com halteres" data-image-url="push/desenvolvimento_halter.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Desenvolvimento halter</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 – 10 – 8)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Elevação frontal polia -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="push-6" data-exercise-name="Elevação frontal na polia" data-image-url="push/elevação_frontal_polia.jpg">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Elevação frontal polia</h4>
+                                    <p class="text-gray-400 text-sm">3x (15 – 12 – 10)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tríceps -->
+                <div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-300">Tríceps</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- IMAGEM PARA: Tríceps corda polia -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="push-7" data-exercise-name="Tríceps na polia com corda" data-image-url="push/triceps_corda_polia.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Tríceps corda polia</h4>
+                                    <p class="text-gray-400 text-sm">3x (15 – 12 – 10)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Tríceps francês (máquina ou halter) -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="push-8" data-exercise-name="Tríceps francês com halteres" data-image-url="push/triceps_frances.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Tríceps francês (máquina ou halter)</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 – 10 – 8)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                             <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIA DE PULL -->
+            <div id="pull-day" class="workout-section hidden space-y-8">
+                <div class="flex justify-between items-center">
+                     <h2 class="text-2xl sm:text-3xl font-bold text-green-400 border-l-4 border-green-400 pl-4">PULL</h2>
+                     <span class="text-gray-400 font-semibold text-xs sm:text-base">(Costas | Ombro Post. | Trapézio | Bíceps)</span>
+                </div>
+                 <div class="progress-container bg-gray-800 rounded-full h-3 w-full">
+                    <div id="pull-progress" class="progress-bar bg-green-500 h-3 rounded-full transition-all duration-300 ease-in-out" style="width: 0%"></div>
+                </div>
+                
+                <!-- Costas -->
+                 <div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-300">Costas</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- IMAGEM PARA: Puxada aberta pulley frente -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="pull-1" data-exercise-name="Puxada aberta na polia" data-image-url="pull/puxada_aberta pulley_frente.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Puxada aberta pulley frente</h4>
+                                    <p class="text-gray-400 text-sm">3x (15 – 12 – 10)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Puxada alta triângulo -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="pull-2" data-exercise-name="Puxada com triângulo" data-image-url="pull/puxada_alta_triangulo.jpg">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Puxada alta triângulo</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 – 10 – 8)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Remada pronada barra/máquina -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="pull-3" data-exercise-name="Remada pronada com barra" data-image-url="pull/remada_pronada_barra_maquina.gif">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Remada pronada barra/máquina</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 – 10 – 8)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Remada unilateral (serrote) -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="pull-4" data-exercise-name="Remada unilateral (serrote)" data-image-url="pull/remada_unilateral_serrote.gif">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Remada unilateral (serrote)</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 cada lado)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ombro posterior / trapézio -->
+                 <div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-300">Ombro posterior / Trapézio</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- IMAGEM PARA: Elevação lateral -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="pull-5" data-exercise-name="Elevação lateral com halteres" data-image-url="pull/elevacao_lateral.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Elevação lateral</h4>
+                                    <p class="text-gray-400 text-sm">3x (15 – 12 – 10)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Peck deck invertido -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="pull-6" data-exercise-name="Peck deck invertido" data-image-url="pull/peck_deck_invertido.jpg">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Peck deck invertido</h4>
+                                    <p class="text-gray-400 text-sm">3x (15 – 12 – 10)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Encolhimento halter -->
+                         <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="pull-7" data-exercise-name="Encolhimento com halteres" data-image-url="pull/encolhimento.jpg">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Encolhimento halter</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 – 10 – 8)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                             <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bíceps -->
+                <div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-300">Bíceps</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- IMAGEM PARA: Rosca Scott -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="pull-8" data-exercise-name="Rosca Scott com barra" data-image-url="pull/rosca_scott.jpg">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Rosca Scott</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 – 10 – 8)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Rosca alternada -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="pull-9" data-exercise-name="Rosca alternada com halteres" data-image-url="pull/rosca_alternada.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Rosca alternada</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 cada braço)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                             <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIA DE LEGS -->
+            <div id="legs-day" class="workout-section hidden space-y-8">
+                 <div class="flex justify-between items-center">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-red-400 border-l-4 border-red-400 pl-4">LEGS</h2>
+                    <span class="text-gray-400 font-semibold text-xs sm:text-base">(Quadríceps | Posterior | Glúteo | Panturrilha)</span>
+                 </div>
+                 <div class="progress-container bg-gray-800 rounded-full h-3 w-full">
+                    <div id="legs-progress" class="progress-bar bg-red-500 h-3 rounded-full transition-all duration-300 ease-in-out" style="width: 0%"></div>
+                </div>
+                
+                <!-- Quadríceps -->
+                 <div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-300">Quadríceps</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- IMAGEM PARA: Extensora -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="legs-1" data-exercise-name="Cadeira extensora" data-image-url="https://www.jefit.com/images/exercises/animation/machine-leg-extension.gif">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Extensora</h4>
+                                    <p class="text-gray-400 text-sm">3x (15 – 12 – 10)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Agachamento livre -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="legs-2" data-exercise-name="Agachamento com barra" data-image-url="https://www.jefit.com/images/exercises/animation/barbell-squat.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Agachamento livre</h4>
+                                    <p class="text-gray-400 text-sm">4x (12 – 10 – 8 – 6 progressão de carga)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">4</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Leg press -->
+                         <div class="bg-gray-900 p-5 rounded-lg col-span-1 md:col-span-2 exercise-card" data-exercise-id="legs-3" data-exercise-name="Leg Press" data-image-url="https://www.jefit.com/images/exercises/animation/machine-leg-press.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Leg press</h4>
+                                    <p class="text-gray-400 text-sm">4x (12 – 10 – 8 – 6 pesado)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                             <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">4</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Posterior de coxa -->
+                 <div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-300">Posterior de coxa</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- IMAGEM PARA: Mesa flexora -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="legs-4" data-exercise-name="Mesa flexora" data-image-url="https://www.jefit.com/images/exercises/animation/machine-lying-leg-curl.gif">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Mesa flexora</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 – 10 – 8)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Cadeira flexora -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="legs-5" data-exercise-name="Cadeira flexora" data-image-url="https://www.jefit.com/images/exercises/animation/machine-seated-leg-curl.gif">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Cadeira flexora</h4>
+                                    <p class="text-gray-400 text-sm">3x (12 – 10 – 8)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                             <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Glúteo -->
+                 <div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-300">Glúteo</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- IMAGEM PARA: Elevação pélvica (hip thrust) -->
+                        <div class="bg-gray-900 p-5 rounded-lg col-span-1 md:col-span-2 exercise-card" data-exercise-id="legs-6" data-exercise-name="Elevação pélvica com barra" data-image-url="https://www.jefit.com/images/exercises/animation/barbell-hip-thrust.gif">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Elevação pélvica (hip thrust)</h4>
+                                    <p class="text-gray-400 text-sm">4x (12 – 10 – 8 – 6)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                             <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">4</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                 <!-- Panturrilha -->
+                 <div>
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-300">Panturrilha</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- IMAGEM PARA: Panturrilha em pé -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="legs-7" data-exercise-name="Panturrilha em pé na máquina" data-image-url="https://www.jefit.com/images/exercises/animation/machine-standing-calf-raise.gif">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Panturrilha em pé</h4>
+                                    <p class="text-gray-400 text-sm">4x (15 – 12 – 10 – 10)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                             <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">4</span></label>
+                            </div>
+                        </div>
+                        <!-- IMAGEM PARA: Panturrilha sentado -->
+                        <div class="bg-gray-900 p-5 rounded-lg exercise-card" data-exercise-id="legs-8" data-exercise-name="Panturrilha sentado na máquina" data-image-url="https://www.jefit.com/images/exercises/animation/machine-seated-calf-raise.gif">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-white">Panturrilha sentado</h4>
+                                    <p class="text-gray-400 text-sm">4x (15 – 12 – 10 – 10)</p>
+                                </div>
+                                <button class="show-image-btn text-gray-500 hover:text-blue-400 transition-colors p-1 -mt-1 -mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                            </div>
+                             <div class="flex space-x-4 mt-4 series-tracker">
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">1</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">2</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">3</span></label>
+                                <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="series-checkbox"><span class="text-sm font-medium text-gray-300">4</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Botão para Resetar Marcações -->
+        <div class="text-center mt-12">
+            <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                Resetar Marcações
+            </button>
+        </div>
+
+        <!-- Seção de Estrutura Geral -->
+        <section class="mt-16 pt-8 border-t border-gray-800">
+            <h2 class="text-2xl sm:text-3xl font-bold text-center mb-6 text-white">📌 Estrutura Geral e Observações</h2>
+            <div class="bg-gray-900 p-6 rounded-lg shadow-lg space-y-4 text-gray-300 border border-gray-800">
+                <div>
+                    <strong class="text-blue-400">Progressão de carga:</strong>
+                    <p class="text-gray-400">Conforme o plano: 15 reps (aquecimento/ativação), 12 reps, 10 reps (aumentando o peso a cada série).</p>
+                </div>
+                 <div>
+                    <strong class="text-blue-400">Descanso:</strong>
+                    <ul class="list-disc list-inside ml-4 text-gray-400">
+                        <li><span class="font-semibold text-gray-300">Exercícios Compostos:</span> 90 segundos.</li>
+                        <li><span class="font-semibold text-gray-300">Exercícios Isoladores:</span> 45–60 segundos.</li>
+                    </ul>
+                </div>
+                 <div>
+                    <strong class="text-blue-400">Abdômen (2–3x por semana):</strong>
+                     <p class="text-gray-400">Alternar entre exercícios como prancha, elevação de pernas e ab wheel.</p>
+                </div>
+                 <div>
+                    <strong class="text-blue-400">Cardio:</strong>
+                    <p class="text-gray-400">2x por semana em ritmo leve (20min). HIIT recomendado apenas em fases de definição para otimizar a queima de gordura.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal do Calendário -->
+    <div id="calendar-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 transition-opacity duration-300 p-4">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-2xl transform transition-all duration-300 scale-95 opacity-0" id="calendar-modal-content">
+            <div class="flex justify-between items-center p-4 border-b border-gray-700">
+                <button id="prev-month-btn" class="p-2 rounded-full hover:bg-gray-700">&lt;</button>
+                <h3 id="month-year-title" class="text-xl font-bold text-white"></h3>
+                <button id="next-month-btn" class="p-2 rounded-full hover:bg-gray-700">&gt;</button>
+            </div>
+            <div id="calendar-grid" class="grid grid-cols-7 gap-1 p-4"></div>
+             <div class="flex justify-end p-4 border-t border-gray-700">
+                 <button id="calendar-close-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Fechar</button>
+             </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Seleção do Dia -->
+    <div id="day-context-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 transition-opacity duration-300 p-4">
+        <div id="day-context-content" class="bg-gray-700 rounded-lg shadow-xl p-4 space-y-2 transform transition-all duration-300 scale-95 opacity-0">
+             <h4 id="day-modal-title" class="text-center font-bold text-white mb-2"></h4>
+             <button data-workout="push" class="w-full text-left p-2 rounded hover:bg-blue-600">Marcar Push <span class="workout-dot workout-dot-push"></span></button>
+             <button data-workout="pull" class="w-full text-left p-2 rounded hover:bg-green-600">Marcar Pull <span class="workout-dot workout-dot-pull"></span></button>
+             <button data-workout="legs" class="w-full text-left p-2 rounded hover:bg-red-600">Marcar Legs <span class="workout-dot workout-dot-legs"></span></button>
+             <button data-workout="clear" class="w-full text-left p-2 rounded hover:bg-gray-600">Limpar Marcação</button>
+        </div>
+    </div>
+
+
+    <!-- Modal de Confirmação de Reset -->
+    <div id="reset-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 transition-opacity duration-300">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-8 shadow-xl text-center max-w-sm mx-4 transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
+            <h3 class="text-xl font-bold text-white mb-4">Confirmar Reset</h3>
+            <p class="text-gray-400 mb-6">Tem certeza que deseja apagar todas as marcações? Esta ação não pode ser desfeita.</p>
+            <div class="flex justify-center space-x-4">
+                <button id="modal-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg transition">Cancelar</button>
+                <button id="modal-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Imagem do Exercício -->
+    <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50 transition-opacity duration-300 p-4">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-xl text-center max-w-lg w-full transform transition-all duration-300 scale-95 opacity-0 relative" id="image-modal-content">
+            <button id="image-modal-close-btn" class="absolute top-2 right-3 text-gray-500 hover:text-white text-3xl font-bold">&times;</button>
+            <h3 id="image-modal-title" class="text-xl font-bold text-white mb-4 pt-4 px-4">Nome do Exercício</h3>
+            <div class="p-4 bg-black rounded-b-lg">
+                <img id="image-modal-img" src="" alt="Execução do exercício" class="w-full h-auto rounded-md mx-auto">
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const STORAGE_KEY = 'pplWorkoutProgress_v2';
+        const CALENDAR_STORAGE_KEY = 'pplCalendarData_v1';
+
+        const tabs = [
+            { btn: document.getElementById('push-btn'), content: document.getElementById('push-day') },
+            { btn: document.getElementById('pull-btn'), content: document.getElementById('pull-day') },
+            { btn: document.getElementById('legs-btn'), content: document.getElementById('legs-day') }
+        ];
+
+        const allExerciseCards = document.querySelectorAll('.exercise-card');
+        
+        // Modal de Reset
+        const resetButton = document.getElementById('reset-btn');
+        const resetModal = document.getElementById('reset-modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+
+        // Modal de Imagem
+        const imageModal = document.getElementById('image-modal');
+        const imageModalContent = document.getElementById('image-modal-content');
+        const imageModalTitle = document.getElementById('image-modal-title');
+        const imageModalImg = document.getElementById('image-modal-img');
+        const imageModalCloseBtn = document.getElementById('image-modal-close-btn');
+        const showImageButtons = document.querySelectorAll('.show-image-btn');
+        
+        // Calendário
+        const calendarBtn = document.getElementById('calendar-btn');
+        const calendarModal = document.getElementById('calendar-modal');
+        const calendarModalContent = document.getElementById('calendar-modal-content');
+        const calendarGrid = document.getElementById('calendar-grid');
+        const monthYearTitle = document.getElementById('month-year-title');
+        const prevMonthBtn = document.getElementById('prev-month-btn');
+        const nextMonthBtn = document.getElementById('next-month-btn');
+        const calendarCloseBtn = document.getElementById('calendar-close-btn');
+        const dayContextModal = document.getElementById('day-context-modal');
+        const dayContextContent = document.getElementById('day-context-content');
+        const dayModalTitle = document.getElementById('day-modal-title');
+        
+        let currentDate = new Date();
+        let calendarData = {};
+        let selectedDateString = '';
+
+
+        function saveState() {
+            const state = {};
+            allExerciseCards.forEach(card => {
+                const id = card.getAttribute('data-exercise-id');
+                const seriesCheckboxes = card.querySelectorAll('.series-checkbox');
+                const seriesState = Array.from(seriesCheckboxes).map(cb => cb.checked);
+                state[id] = seriesState;
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+        
+        function updateProgressBar(dayElement) {
+            if (!dayElement) return;
+            const progressBar = dayElement.querySelector('.progress-bar');
+            const checkboxes = dayElement.querySelectorAll('.series-checkbox');
+            if (!progressBar || checkboxes.length === 0) return;
+
+            const total = checkboxes.length;
+            const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const percentage = total > 0 ? (checked / total) * 100 : 0;
+            
+            progressBar.style.width = `${percentage}%`;
+        }
+        
+        function updateAllProgressBars() {
+            tabs.forEach(tab => updateProgressBar(tab.content));
+        }
+
+        function loadState() {
+            const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+            allExerciseCards.forEach(card => {
+                const id = card.getAttribute('data-exercise-id');
+                const seriesCheckboxes = card.querySelectorAll('.series-checkbox');
+                
+                if (savedState[id]) {
+                    seriesCheckboxes.forEach((checkbox, index) => {
+                        checkbox.checked = savedState[id][index] || false;
+                    });
+                } else {
+                     seriesCheckboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                }
+                updateCardCompletedState(card);
+            });
+            updateAllProgressBars();
+        }
+        
+        function updateCardCompletedState(card) {
+            const seriesCheckboxes = card.querySelectorAll('.series-checkbox');
+            if (seriesCheckboxes.length === 0) return;
+            const allSeriesDone = Array.from(seriesCheckboxes).every(cb => cb.checked);
+            card.classList.toggle('completed', allSeriesDone);
+        }
+
+        function performReset() {
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(CALENDAR_STORAGE_KEY);
+            calendarData = {};
+            loadState();
+        }
+
+        function showTab(selectedTab) {
+            tabs.forEach(tab => {
+                const isSelected = tab === selectedTab;
+                tab.btn.classList.toggle('active', isSelected);
+                tab.content.classList.toggle('hidden', !isSelected);
+            });
+             calendarBtn.classList.remove('active');
+        }
+        
+        function showResetModal() {
+            resetModal.classList.remove('hidden');
+            setTimeout(() => { 
+                resetModal.style.opacity = '1';
+                modalContent.style.opacity = '1';
+                modalContent.style.transform = 'scale(1)';
+            }, 10);
+        }
+
+        function hideResetModal() {
+            resetModal.style.opacity = '0';
+            modalContent.style.opacity = '0';
+            modalContent.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                 resetModal.classList.add('hidden');
+            }, 300); 
+        }
+
+        function showImageModal(name, url) {
+            imageModalTitle.textContent = name;
+            imageModalImg.src = url;
+            imageModal.classList.remove('hidden');
+            setTimeout(() => {
+                imageModal.style.opacity = '1';
+                imageModalContent.style.opacity = '1';
+                imageModalContent.style.transform = 'scale(1)';
+            }, 10);
+        }
+
+        function hideImageModal() {
+            imageModal.style.opacity = '0';
+            imageModalContent.style.opacity = '0';
+            imageModalContent.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                 imageModal.classList.add('hidden');
+                 imageModalImg.src = "";
+            }, 300);
+        }
+        
+        // --- Funções do Calendário ---
+        function loadCalendarData() {
+            calendarData = JSON.parse(localStorage.getItem(CALENDAR_STORAGE_KEY)) || {};
+        }
+
+        function saveCalendarData() {
+            localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(calendarData));
+        }
+
+        function renderCalendar() {
+            calendarGrid.innerHTML = '';
+            const month = currentDate.getMonth();
+            const year = currentDate.getFullYear();
+            
+            monthYearTitle.textContent = `${new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(currentDate)} ${year}`;
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            dayNames.forEach(day => {
+                const dayEl = document.createElement('div');
+                dayEl.textContent = day;
+                dayEl.className = 'text-center font-bold text-gray-400 text-xs';
+                calendarGrid.appendChild(dayEl);
+            });
+
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                calendarGrid.appendChild(document.createElement('div'));
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = document.createElement('div');
+                const date = new Date(year, month, day);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                dayEl.className = 'calendar-day p-2 text-center cursor-pointer rounded-lg hover:bg-gray-700 transition-colors relative';
+                dayEl.dataset.date = dateStr;
+                
+                const dayNumber = document.createElement('span');
+                dayNumber.textContent = day;
+                dayEl.appendChild(dayNumber);
+
+                const today = new Date();
+                if (date.toDateString() === today.toDateString()) {
+                    dayNumber.classList.add('today', 'rounded-full', 'w-7', 'h-7', 'inline-flex', 'items-center', 'justify-center');
+                }
+
+                if (calendarData[dateStr]) {
+                    const dotContainer = document.createElement('div');
+                    dotContainer.className = 'absolute bottom-1 left-1/2 -translate-x-1/2';
+                    const dot = document.createElement('div');
+                    dot.className = `workout-dot workout-dot-${calendarData[dateStr]}`;
+                    dotContainer.appendChild(dot);
+                    dayEl.appendChild(dotContainer);
+                }
+                
+                calendarGrid.appendChild(dayEl);
+            }
+        }
+
+        function showCalendarModal() {
+            tabs.forEach(tab => tab.content.classList.add('hidden'));
+            tabs.forEach(tab => tab.btn.classList.remove('active'));
+            calendarBtn.classList.add('active');
+            renderCalendar();
+            calendarModal.classList.remove('hidden');
+            setTimeout(() => {
+                calendarModal.style.opacity = '1';
+                calendarModalContent.style.opacity = '1';
+                calendarModalContent.style.transform = 'scale(1)';
+            }, 10);
+        }
+
+        function hideCalendarModal() {
+            calendarModal.style.opacity = '0';
+            calendarModalContent.style.opacity = '0';
+            calendarModalContent.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                 calendarModal.classList.add('hidden');
+                 showTab(tabs[0]); // Volta para a primeira aba
+            }, 300);
+        }
+        
+        function showDayContextModal(dateStr) {
+            selectedDateString = dateStr;
+            const date = new Date(dateStr + 'T00:00:00');
+            dayModalTitle.textContent = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+            dayContextModal.classList.remove('hidden');
+             setTimeout(() => {
+                dayContextModal.style.opacity = '1';
+                dayContextContent.style.opacity = '1';
+                dayContextContent.style.transform = 'scale(1)';
+            }, 10);
+        }
+        
+        function hideDayContextModal() {
+             dayContextModal.style.opacity = '0';
+            dayContextContent.style.opacity = '0';
+            dayContextContent.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                 dayContextModal.classList.add('hidden');
+            }, 300);
+        }
+
+
+        // --- Event Listeners ---
+        tabs.forEach(tab => {
+            tab.btn.addEventListener('click', () => showTab(tab));
+        });
+
+        document.querySelectorAll('.series-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const card = checkbox.closest('.exercise-card');
+                updateCardCompletedState(card);
+                updateProgressBar(card.closest('.workout-section'));
+                saveState();
+            });
+        });
+
+        // Listeners do Modal de Reset
+        resetButton.addEventListener('click', showResetModal);
+        modalCancelBtn.addEventListener('click', hideResetModal);
+        modalConfirmBtn.addEventListener('click', () => {
+            performReset();
+            hideResetModal();
+        });
+        resetModal.addEventListener('click', (event) => { if (event.target === resetModal) hideResetModal(); });
+
+        // Listeners do Modal de Imagem
+        showImageButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const card = button.closest('.exercise-card');
+                const name = card.dataset.exerciseName;
+                const url = card.dataset.imageUrl;
+                showImageModal(name, url);
+            });
+        });
+        imageModalCloseBtn.addEventListener('click', hideImageModal);
+        imageModal.addEventListener('click', (event) => { if (event.target === imageModal) hideImageModal(); });
+        
+        // Listeners do Calendário
+        calendarBtn.addEventListener('click', showCalendarModal);
+        calendarCloseBtn.addEventListener('click', hideCalendarModal);
+        prevMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+        nextMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+        calendarGrid.addEventListener('click', (e) => {
+            const dayEl = e.target.closest('.calendar-day');
+            if(dayEl) {
+                showDayContextModal(dayEl.dataset.date);
+            }
+        });
+        dayContextModal.addEventListener('click', (e) => {
+            if (e.target.dataset.workout) {
+                const workout = e.target.dataset.workout;
+                if(workout === 'clear') {
+                    delete calendarData[selectedDateString];
+                } else {
+                    calendarData[selectedDateString] = workout;
+                }
+                saveCalendarData();
+                renderCalendar();
+                hideDayContextModal();
+            }
+            if(e.target === dayContextModal) {
+                 hideDayContextModal();
+            }
+        });
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            showTab(tabs[0]);
+            loadState();
+            loadCalendarData();
+        });
+    </script>
+
+</body>
+</html>
